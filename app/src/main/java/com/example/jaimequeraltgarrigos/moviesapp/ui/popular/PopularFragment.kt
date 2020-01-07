@@ -59,7 +59,7 @@ class PopularFragment : Fragment(), Injectable {
             dataBindingComponent = dataBindingComponent,
             appExecutors = appExecutors
         ) { movie ->
-            popularViewModel.retry()
+            popularViewModel.loadMovies()
         }
         adapter = rvAdapter
         binding.movieList.adapter = adapter
@@ -69,7 +69,7 @@ class PopularFragment : Fragment(), Injectable {
 
             }
         }
-        popularViewModel.retry()
+        popularViewModel.loadMovies()
         binding.popularResult = popularViewModel.movies
         popularViewModel.movies.observe(viewLifecycleOwner, Observer { result ->
             adapter.submitList(result?.data)
@@ -80,7 +80,7 @@ class PopularFragment : Fragment(), Injectable {
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 val lastPosition = layoutManager.findLastVisibleItemPosition()
                 if (lastPosition == adapter.itemCount - 1) {
-                    popularViewModel.loadNextPage()
+                    popularViewModel.loadMovies()
                 }
             }
         })

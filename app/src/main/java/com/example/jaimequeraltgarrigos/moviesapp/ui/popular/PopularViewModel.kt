@@ -15,15 +15,13 @@ import javax.inject.Inject
 class PopularViewModel @Inject constructor(val popularRepository: PopularRepository) : ViewModel() {
 
     private val reloadTrigger = MutableLiveData<Boolean>()
+    private var nextPage: Int? = 0
     var movies: LiveData<Resource<List<Movie>>> = Transformations.switchMap(reloadTrigger) {
         popularRepository.loadPopularMovies()
     }
 
-    fun retry() {
+    fun loadMovies() {
+        nextPage = popularRepository.getNextPage()
         reloadTrigger.value = true
-    }
-
-    fun loadNextPage() {
-
     }
 }

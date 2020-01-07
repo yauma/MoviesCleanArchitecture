@@ -44,9 +44,9 @@ class PopularRepository @Inject constructor(
 
             override fun loadFromDb(): LiveData<List<Movie>> {
                 return Transformations.switchMap(movieDao.getPopularMoviesResult()) {
-                    if (it == null){
+                    if (it == null) {
                         AbsentLiveData.create()
-                    }else{
+                    } else {
                         movieDao.loadOrdered(it.moviesId)
 
                     }
@@ -58,6 +58,14 @@ class PopularRepository @Inject constructor(
             }
 
         }.asLiveData()
+    }
+
+    fun getNextPage(): Int? {
+        var nextPage: Int? = 1
+        appExecutors.diskIO().execute {
+            nextPage = movieDao.getNextPage()
+        }
+        return nextPage
     }
 
 }

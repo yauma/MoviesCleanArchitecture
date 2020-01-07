@@ -43,4 +43,7 @@ abstract class MovieDao {
 
     @Query("SELECT * FROM Movie WHERE id in (:repoIds)")
     protected abstract fun loadById(repoIds: List<Int>): LiveData<List<Movie>>
+
+    @Query("Select next FROM popularmoviesresult")
+    abstract fun getNextPage(): Int?
 }
