@@ -9,7 +9,7 @@ class TestUtil {
             var id = 0
             for (movieName in moviesNames) {
                 id++
-                val movie = Movie(id.toString(), movieName, "url")
+                val movie = Movie(id, movieName, "url")
                 movies.add(movie)
             }
             return movies

@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
 @Entity(primaryKeys = ["id"])
 data class Movie constructor(
     @field:SerializedName("id")
-    val id: String,
+    val id: Int,
     @field:SerializedName("original_title")
     val title: String?,
     @field:SerializedName("backdrop_path")
