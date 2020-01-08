@@ -13,7 +13,7 @@ import com.example.jaimequeraltgarrigos.moviesapp.db.DataTypeConverters
 @Entity()
 @TypeConverters(DataTypeConverters::class)
 data class PopularMoviesResult(
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey()
     val id: Int = 0,
     val moviesId: List<Int>,
     val totalCount: Int,

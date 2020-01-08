@@ -7,15 +7,16 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.jaimequeraltgarrigos.moviesapp.api.MoviesServiceResponse
 import com.example.jaimequeraltgarrigos.moviesapp.model.Movie
 import com.example.jaimequeraltgarrigos.moviesapp.model.PopularMoviesResult
 import java.util.*
 
+
 @Dao
 abstract class MovieDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(movies: List<Movie>)
+    abstract fun insert(vararg movie: Movie): LongArray?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(popularMoviesResult: PopularMoviesResult)
@@ -24,7 +25,7 @@ abstract class MovieDao {
     abstract fun loadMovies(): LiveData<List<Movie>>
 
     @Query("SELECT * FROM popularmoviesresult")
-    abstract fun getPopularMoviesResult(): LiveData<PopularMoviesResult>
+    abstract fun getLiveDataPopularMoviesResult(): LiveData<PopularMoviesResult>
 
     fun loadOrdered(moviesId: List<Int>): LiveData<List<Movie>> {
         val order = SparseIntArray()
@@ -33,8 +34,8 @@ abstract class MovieDao {
         }
         return Transformations.map(loadById(moviesId)) { repositories ->
             Collections.sort(repositories) { r1, r2 ->
-                val pos1 = order.get(r1.id)
-                val pos2 = order.get(r2.id)
+                val pos1 = r1.generatedId
+                val pos2 = r2.generatedId
                 pos1 - pos2
             }
             repositories
@@ -42,8 +43,8 @@ abstract class MovieDao {
     }
 
     @Query("SELECT * FROM Movie WHERE id in (:repoIds)")
-    protected abstract fun loadById(repoIds: List<Int>): LiveData<List<Movie>>
+    abstract fun loadById(repoIds: List<Int>): LiveData<List<Movie>>
 
     @Query("Select next FROM popularmoviesresult")
-    abstract fun getNextPage(): Int?
+    abstract fun getNextPage(): LiveData<Int>
 }

@@ -25,47 +25,61 @@ class PopularRepository @Inject constructor(
 ) {
     private val repoListRateLimit = RateLimiter<String>(10, TimeUnit.MINUTES)
 
-    fun loadPopularMovies(): LiveData<Resource<List<Movie>>> {
+    fun loadPopularMovies(page: Int, firstPage: Boolean): LiveData<Resource<List<Movie>>> {
         return object : NetworkBoundResource<List<Movie>, MoviesServiceResponse>(appExecutors) {
+            var current: PopularMoviesResult = PopularMoviesResult(0, arrayListOf(), 0, 0)
+
+
             override fun saveCallResult(item: MoviesServiceResponse) {
-                val moviesId = item.movies.map { it.id }
-                val popularMoviesResult: PopularMoviesResult = PopularMoviesResult(
-                    moviesId = moviesId,
-                    totalCount = item.total_results,
-                    next = item.page + 1
-                )
-                movieDao.insert(item.movies)
+                val popularMoviesResult = mergeData(item, current, firstPage)
+                movieDao.insert(*item.movies.toTypedArray())
                 movieDao.insert(popularMoviesResult)
             }
 
             override fun shouldFetch(data: List<Movie>?): Boolean {
-                return data == null || data.isEmpty() || repoListRateLimit.shouldFetch("Movies")
+                return !firstPage || data == null || data.isEmpty()
+                        || repoListRateLimit.shouldFetch("Movies")
             }
 
             override fun loadFromDb(): LiveData<List<Movie>> {
-                return Transformations.switchMap(movieDao.getPopularMoviesResult()) {
+
+                return Transformations.switchMap(movieDao.getLiveDataPopularMoviesResult()) {
                     if (it == null) {
                         AbsentLiveData.create()
                     } else {
-                        movieDao.loadOrdered(it.moviesId)
+                        current = it
+                        movieDao.loadById(it.moviesId)
 
                     }
                 }
             }
 
             override fun createCall(): LiveData<ApiResponse<MoviesServiceResponse>> {
-                return moviesService.getPopularMovies(Constants.API_KEY)
+                return moviesService.getPopularMovies(Constants.API_KEY, page)
             }
 
         }.asLiveData()
     }
 
-    fun getNextPage(): Int? {
-        var nextPage: Int? = 1
-        appExecutors.diskIO().execute {
-            nextPage = movieDao.getNextPage()
+    private fun mergeData(
+        item: MoviesServiceResponse,
+        current: PopularMoviesResult,
+        firstPage: Boolean
+    ): PopularMoviesResult {
+        val ids = arrayListOf<Int>()
+        ids.addAll(item.movies.map { it.id })
+        if (current.moviesId.isNotEmpty() && !firstPage) {
+            ids.addAll(current.moviesId)
         }
-        return nextPage
+        return PopularMoviesResult(
+            moviesId = ids,
+            totalCount = item.total_results,
+            next = item.page + 1
+        )
+    }
+
+    fun getNextPage(): LiveData<Int> {
+        return movieDao.getNextPage()
     }
 
 }

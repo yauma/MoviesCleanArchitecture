@@ -48,7 +48,7 @@ class PopularRepositoryTest {
         val call = successCall(movies)
         Mockito.`when`(service.getPopularMovies(Constants.API_KEY)).thenReturn(call)
 
-        val data = repository.loadPopularMovies()
+        val data = repository.loadPopularMovies(it, firsPage)
         Mockito.verify(dao).loadMovies()
         Mockito.verifyNoMoreInteractions(service)
 

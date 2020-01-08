@@ -6,22 +6,24 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.example.jaimequeraltgarrigos.moviesapp.model.Movie
 import com.example.jaimequeraltgarrigos.moviesapp.model.Resource
-import com.example.jaimequeraltgarrigos.moviesapp.model.Status
 import com.example.jaimequeraltgarrigos.moviesapp.repository.PopularRepository
-import com.example.jaimequeraltgarrigos.moviesapp.util.AbsentLiveData
-import java.util.*
 import javax.inject.Inject
 
 class PopularViewModel @Inject constructor(val popularRepository: PopularRepository) : ViewModel() {
 
-    private val reloadTrigger = MutableLiveData<Boolean>()
-    private var nextPage: Int? = 0
-    var movies: LiveData<Resource<List<Movie>>> = Transformations.switchMap(reloadTrigger) {
-        popularRepository.loadPopularMovies()
+    private var currentPage = MutableLiveData<Int>()
+    private var firsPage = true
+    var movies: LiveData<Resource<List<Movie>>> = Transformations.switchMap(currentPage) {
+        popularRepository.loadPopularMovies(it, firsPage)
     }
 
     fun loadMovies() {
-        nextPage = popularRepository.getNextPage()
-        reloadTrigger.value = true
+        currentPage.value = 1
+
+    }
+
+    fun loadNextPage(nextPage: Int) {
+        firsPage = false
+        currentPage.value = nextPage
     }
 }
