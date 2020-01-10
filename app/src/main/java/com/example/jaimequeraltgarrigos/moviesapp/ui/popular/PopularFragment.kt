@@ -18,6 +18,7 @@ import com.example.jaimequeraltgarrigos.moviesapp.AppExecutors
 import com.example.jaimequeraltgarrigos.moviesapp.R
 import com.example.jaimequeraltgarrigos.moviesapp.databinding.PopularFragmentBinding
 import com.example.jaimequeraltgarrigos.moviesapp.di.Injectable
+import com.example.jaimequeraltgarrigos.moviesapp.model.Status
 import com.example.jaimequeraltgarrigos.moviesapp.ui.common.MovieListAdapter
 import com.example.jaimequeraltgarrigos.moviesapp.ui.common.RetryCallback
 import com.example.jaimequeraltgarrigos.moviesapp.util.autoCleared
@@ -83,31 +84,23 @@ class PopularFragment : Fragment(), Injectable {
             dataBindingComponent = dataBindingComponent,
             appExecutors = appExecutors
         ) { movie ->
-            popularViewModel.loadMovies()
+
         }
         adapter = rvAdapter
         binding.movieList.adapter = adapter
         binding.callback = object : RetryCallback {
             override fun retry() {
-                popularViewModel.movies
 
             }
         }
         popularViewModel.loadMovies()
         binding.popularResult = popularViewModel.movies
+        binding.loadingMore = popularViewModel.loadingMore
         popularViewModel.movies.observe(viewLifecycleOwner, Observer { result ->
-            adapter.submitList(result?.data)
+            if (result.status == Status.SUCCESS) {
+                popularViewModel.loadingMore.value = false
+                adapter.submitList(result?.data)
+            }
         })
     }
 }
-/*binding.movieList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-        val lastPosition = layoutManager.findLastVisibleItemPosition()
-        if (lastPosition == adapter.itemCount - 1) {
-            popularViewModel.nextPage.observe(viewLifecycleOwner, Observer { nextPage ->
-                popularViewModel.loadNextPage(nextPage)
-            })
-        }
-    }
-})*/

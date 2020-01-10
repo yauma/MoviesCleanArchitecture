@@ -11,6 +11,7 @@ import javax.inject.Inject
 
 class PopularViewModel @Inject constructor(val popularRepository: PopularRepository) : ViewModel() {
 
+    var loadingMore = MutableLiveData<Boolean>()
     private var currentPage = MutableLiveData<Int>()
     private var firsPage = true
     var movies: LiveData<Resource<List<Movie>>> = Transformations.switchMap(currentPage) {
@@ -18,11 +19,13 @@ class PopularViewModel @Inject constructor(val popularRepository: PopularReposit
     }
 
     fun loadMovies() {
+        loadingMore.value = false
         currentPage.value = 1
 
     }
 
     fun loadNextPage(nextPage: Int) {
+        loadingMore.value = true
         firsPage = false
         currentPage.value = nextPage
     }
