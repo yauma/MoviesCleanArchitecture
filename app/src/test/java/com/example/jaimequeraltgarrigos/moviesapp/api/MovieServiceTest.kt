@@ -40,10 +40,10 @@ class MovieServiceTest {
     @Test
     fun getPopularMovies() {
         enqueueResponse("popular-movies.json")
-        val popularMovies = (LiveDataTestUtil.getValue(service.getPopularMovies("")) as ApiSuccessResponse).body
+        val popularMovies = (LiveDataTestUtil.getValue(service.getPopularMovies("",1)) as ApiSuccessResponse).body
 
         val request = mockWebServer.takeRequest()
-        Assert.assertThat(request.path, CoreMatchers.`is`("/movie/popular?api_key="))
+        Assert.assertThat(request.path, CoreMatchers.`is`("/movie/popular?api_key=&page=1"))
 
         assertThat(popularMovies.movies.size, CoreMatchers.`is`(2))
 

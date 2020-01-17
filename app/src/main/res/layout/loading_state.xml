@@ -30,11 +30,16 @@
         <variable
             name="callback"
             type="com.example.jaimequeraltgarrigos.moviesapp.ui.common.RetryCallback" />
+
+        <variable
+            name="loadingMore"
+            type="boolean" />
+
     </data>
 
     <LinearLayout
         android:orientation="vertical"
-        app:visibleGone="@{resource.status == Status.LOADING}"
+        app:visibleGone="@{resource.status == Status.LOADING &amp;&amp; loadingMore == false}"
         android:layout_width="wrap_content"
         android:gravity="center"
         android:padding="@dimen/default_margin"

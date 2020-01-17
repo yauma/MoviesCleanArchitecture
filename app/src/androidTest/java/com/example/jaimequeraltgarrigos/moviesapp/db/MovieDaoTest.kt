@@ -17,7 +17,7 @@ class MovieDaoTest : MoviesDBTest() {
     @Test
     fun writeMoviesAndReadFromDB() {
         val movies = TestUtil.createMoviesList(Array<String>(3) { "B";"C";"D" })
-        db.movieDao().insert(movies)
+        db.movieDao().insert(movies[0],movies[1],movies[2])
         val moviesFromDB = LiveDataTestUtil.getValue(db.movieDao().loadMovies())
         Assert.assertEquals(moviesFromDB.get(0).id, movies.get(0).id)
     }

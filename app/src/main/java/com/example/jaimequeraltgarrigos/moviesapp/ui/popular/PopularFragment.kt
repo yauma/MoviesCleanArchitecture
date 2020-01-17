@@ -1,6 +1,7 @@
 package com.example.jaimequeraltgarrigos.moviesapp.ui.popular
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,7 @@ import com.example.jaimequeraltgarrigos.moviesapp.AppExecutors
 import com.example.jaimequeraltgarrigos.moviesapp.R
 import com.example.jaimequeraltgarrigos.moviesapp.databinding.PopularFragmentBinding
 import com.example.jaimequeraltgarrigos.moviesapp.di.Injectable
+import com.example.jaimequeraltgarrigos.moviesapp.model.Status
 import com.example.jaimequeraltgarrigos.moviesapp.ui.common.MovieListAdapter
 import com.example.jaimequeraltgarrigos.moviesapp.ui.common.RetryCallback
 import com.example.jaimequeraltgarrigos.moviesapp.util.autoCleared
@@ -31,12 +33,20 @@ class PopularFragment : Fragment(), Injectable {
 
     var binding by autoCleared<PopularFragmentBinding>()
     var dataBindingComponent: DataBindingComponent = FragmentDataBindingComponent(this)
+    lateinit var scrollListener: RecyclerView.OnScrollListener
 
     private val popularViewModel: PopularViewModel by viewModels {
         viewModelFactory
     }
 
     private var adapter by autoCleared<MovieListAdapter>()
+
+    private lateinit var linearLayoutManager: LinearLayoutManager
+
+    private val lastVisibleItemPosition: Int
+        get() = linearLayoutManager.findLastVisibleItemPosition()
+
+    private var currentPage = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,41 +59,48 @@ class PopularFragment : Fragment(), Injectable {
             false,
             dataBindingComponent
         )
-
+        linearLayoutManager = binding.movieList.layoutManager as LinearLayoutManager
         return binding.root
+    }
+
+    private fun setRecyclerViewScrollListener() {
+        scrollListener = object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                val totalItemCount = recyclerView.layoutManager!!.itemCount
+                if (totalItemCount == lastVisibleItemPosition + 1) {
+                    currentPage++
+                    popularViewModel.loadNextPage(currentPage)
+                }
+            }
+        }
+        binding.movieList.addOnScrollListener(scrollListener)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.setLifecycleOwner(viewLifecycleOwner)
+        setRecyclerViewScrollListener()
         val rvAdapter = MovieListAdapter(
             dataBindingComponent = dataBindingComponent,
             appExecutors = appExecutors
         ) { movie ->
-            popularViewModel.retry()
+
         }
         adapter = rvAdapter
         binding.movieList.adapter = adapter
         binding.callback = object : RetryCallback {
             override fun retry() {
-                popularViewModel.movies
 
             }
         }
-        popularViewModel.retry()
+        popularViewModel.loadMovies()
         binding.popularResult = popularViewModel.movies
+        binding.loadingMore = popularViewModel.loadingMore
         popularViewModel.movies.observe(viewLifecycleOwner, Observer { result ->
-            adapter.submitList(result?.data)
-        })
-
-        binding.movieList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val lastPosition = layoutManager.findLastVisibleItemPosition()
-                if (lastPosition == adapter.itemCount - 1) {
-                    popularViewModel.loadNextPage()
-                }
+            if (result.status == Status.SUCCESS) {
+                popularViewModel.loadingMore.value = false
+                adapter.submitList(result?.data)
             }
         })
-
     }
 }
