@@ -78,7 +78,7 @@ class PopularFragment : Fragment(), Injectable {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.setLifecycleOwner(viewLifecycleOwner)
+        binding.lifecycleOwner = viewLifecycleOwner
         setRecyclerViewScrollListener()
         val rvAdapter = MovieListAdapter(
             dataBindingComponent = dataBindingComponent,
